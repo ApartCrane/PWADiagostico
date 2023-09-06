@@ -1,31 +1,104 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch('https://reqres.in/api/users?page=2')
-    .then(response => response.json())
-    .then(data => {
+    fetch('https://reqres.in/api/users?page=2')
+        .then(response => response.json())
+        .then(data => {
 
-      data.data.forEach(data => {
-        console.log('%c' + data.email, 'background: #777; color: #fff')
-        const idInformation = document.getElementById('persona-info');
-        const cardContent = `
-          <h1 class="card-title">Persona</h1>
-          <br/>
-          <p class="card-text">email: ${data.email}</p>
-          <p class="card-text">firstaname: ${data.first_name}</p>
-          <p class="card-text">lastname: ${data.last_name}</p>
-          <img class="rounded mx-auto d-block" src="${data.avatar}" >
-        `;
-        idInformation.innerHTML = cardContent;
-      });
+            const personaInfo = document.getElementById('persona-info');
 
-    })
-    .catch(error => console.log(error));
+            data.data.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'col-md-4';
+                card.innerHTML = `
+                        <div class="card mb-4">
+                            <img src="${user.avatar}" class=" mx-auto d-block" >
+                            <div class="card-body">
+                                <h1 class="card-title">${user.first_name} ${user.last_name}</h1>
+                                <p class="card-text">Email: ${user.email}</p>
+                                <button type="button" class="btn btn-danger" id="eliminar-${user.id}" onclick="eliminarUsuario(${user.id})">Eliminar</button>
+                                <button type="button" class="btn btn-warning" id="eliminar-${user.id}" onclick="editarUsuario(${user.id})">Editar</button>
+                            </div>
+                        </div>
+                    `;
+                personaInfo.appendChild(card);
+            });
+
+        })
+        .catch(error => console.log(error));
 });
 
+function agregarUsuario() {
+    const nombre = document.getElementById('nombreInput').value;
+    const trabajo = document.getElementById('trabajoInput').value;
 
-function alertBien() {
-  Swal.fire(
-    'Bien',
-    'Se hace lo que se puede profe:(',
-    'question'
-  )
+    fetch('https://reqres.in/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: nombre,
+                job: trabajo,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            Swal.fire('Bien', 'Se agrego al usuario', 'success');
+            console.log(data);
+
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+function eliminarUsuario(userId) {
+    Swal.fire({
+        title: 'Eliminar usuario',
+        text: 'Seguro de eliminarlo? :( ',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Si',
+        cancelButtonText: 'Canvlear',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`https://reqres.in/api/users/${userId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+
+                        Swal.fire('Bien', 'Se elimino el usuario', 'success');
+                        console.log("En efecto, se elimino");
+                    } else {
+                        console.log("Checale, algo no dio :(");
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+
+                });
+        }
+    });
+}
+
+function editarUsuario(userId) {
+    const nombre = "Diego"
+    const trabajo = "Chambeador"
+    fetch('https://reqres.in/api/users/${userId}',{
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+                name: nombre,
+                job: trabajo,
+            }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.fire('Bien', 'Se actualizo al usuario', 'success');
+            console.log(data);
+    })
+    .catch(error => {
+            console.error(error);
+        });
 }
